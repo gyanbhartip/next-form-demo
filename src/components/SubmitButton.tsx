@@ -1,15 +1,19 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import type { ComponentProps } from "react";
 
-const SubmitButton = () => {
-  const { pending } = useFormStatus();
+type Props = ComponentProps<"button"> & {
+  isSubmitting: boolean;
+};
+
+const SubmitButton = ({ isSubmitting, ...props }: Props) => {
   return (
     <button
       type="submit"
       className="mt-4 w-full rounded-[4px] bg-purple-400 p-2 text-white hover:bg-purple-500 active:bg-purple-600"
+      {...props}
     >
-      {pending ? "Submitting..." : "Submit"}
+      {isSubmitting ? "Submitting..." : "Submit"}
     </button>
   );
 };

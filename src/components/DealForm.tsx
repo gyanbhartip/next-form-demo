@@ -1,88 +1,52 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { formHandlerAction } from "_/actions/formHandler";
 import { DealSchema } from "_/schemas/deal";
-import type {
-  Deal,
-  DealFormState,
-  StringMap,
-  StringToBooleanMap,
-} from "_/types/deal";
-import { convertZodErrors } from "_/utils/errors";
-import { type ChangeEvent, type FocusEvent, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import type { Deal } from "_/types/deal";
+import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import ErrorMessage from "./ErrorMessage";
 import SubmitButton from "./SubmitButton";
 
-const initialState: DealFormState<Deal> = {};
-const initialData = {
-  name: "",
-  link: "",
-  coupon: "",
-  discount: 10,
-};
 const DealForm = () => {
-  const [serverState, formAction] = useFormState(
-    formHandlerAction,
-    initialState,
-  );
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<Deal>({
+    resolver: zodResolver(DealSchema),
+    defaultValues: {
+      name: "",
+      link: "",
+      coupon: "",
+      discount: 10,
+    },
+    mode: "onBlur",
+  });
 
-  const [errors, setErrors] = useState<StringMap>(serverState?.errors ?? {});
-  const [blurs, setBlurs] = useState<StringToBooleanMap>(
-    serverState?.blurs ?? {},
-  );
-  const [deal, setDeal] = useState<Deal>(serverState?.data ?? initialData);
-
-  useEffect(() => {
-    if (serverState.successMessage) {
-      toast.success(serverState.successMessage);
-      setBlurs({});
+  const onSubmit = async (deal: Deal) => {
+    const { successMessage } = await formHandlerAction(deal);
+    if (successMessage) {
+      toast.success(successMessage);
+      reset();
     }
-    if (serverState?.data) {
-      setDeal(serverState.data);
-    }
-  }, [serverState]);
-
-  const handleOnBlur = (e: FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target;
-    setBlurs((prev) => ({ ...prev, [name]: true }));
-  };
-
-  const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDeal((prev) => {
-      const updatedDeal = { ...prev, [name]: value };
-
-      const validated = DealSchema.safeParse(updatedDeal);
-
-      if (validated.success) {
-        setErrors({});
-      } else {
-        const errors = convertZodErrors(validated.error);
-        setErrors(errors);
-      }
-      return updatedDeal;
-    });
   };
 
   return (
     <>
-      <form className="form-container" action={formAction}>
+      <form className="form-container" onSubmit={handleSubmit(onSubmit)}>
         <label htmlFor="name" className="input-group">
           Name
           <input
             type="text"
             className="input"
             id="name"
-            name="name"
-            defaultValue={serverState?.data?.name}
-            onBlur={handleOnBlur}
-            onChange={handleOnChange}
-            value={deal.name}
             aria-required
+            {...register("name")}
           />
-          <ErrorMessage error={blurs?.name ? errors?.name : ""} />
+          <ErrorMessage error={errors?.name?.message} />
         </label>
         <label htmlFor="link" className="input-group">
           Link
@@ -90,15 +54,11 @@ const DealForm = () => {
             type="url"
             className="input"
             id="link"
-            name="link"
             placeholder="must start with https://"
-            defaultValue={serverState?.data?.link}
-            onBlur={handleOnBlur}
-            onChange={handleOnChange}
-            value={deal.link}
             aria-required
+            {...register("link")}
           />
-          <ErrorMessage error={blurs?.link ? errors?.link : ""} />
+          <ErrorMessage error={errors?.link?.message} />
         </label>
         <label htmlFor="coupon" className="input-group">
           Coupon Code
@@ -106,14 +66,10 @@ const DealForm = () => {
             type="text"
             className="input"
             id="coupon"
-            name="coupon"
-            defaultValue={serverState?.data?.coupon}
-            onBlur={handleOnBlur}
-            onChange={handleOnChange}
-            value={deal.coupon}
             aria-required
+            {...register("coupon")}
           />
-          <ErrorMessage error={blurs?.coupon ? errors?.coupon : ""} />
+          <ErrorMessage error={errors?.coupon?.message} />
         </label>
         <label htmlFor="discount" className="input-group">
           Discount (%)
@@ -121,15 +77,12 @@ const DealForm = () => {
             type="number"
             className="input no-controls"
             id="discount"
-            name="discount"
-            onBlur={handleOnBlur}
-            onChange={handleOnChange}
-            value={deal.discount}
             aria-required
+            {...register("discount")}
           />
-          <ErrorMessage error={blurs?.discount ? errors?.discount : ""} />
+          <ErrorMessage error={errors?.discount?.message} />
         </label>
-        <SubmitButton />
+        <SubmitButton isSubmitting={isSubmitting} />
       </form>
       <Toaster />
     </>
