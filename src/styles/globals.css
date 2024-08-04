@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .form-container {
+    @apply m-auto flex min-w-fit max-w-4xl flex-col rounded-md bg-gradient-to-br from-[#15162c] to-[#6e02ad] px-44 py-24 text-white;
+  }
+  .input-group {
+    @apply flex flex-col gap-1;
+  }
+  .input {
+    @apply rounded-md bg-gradient-to-br from-[#af8faf] to-[#8a899b] px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50;
+  }
+  .input::placeholder {
+    @apply text-sm text-gray-300;
+  }
+}
+
+@layer utilities {
+  .no-controls {
+    -moz-appearance: textfield;
+  }
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
